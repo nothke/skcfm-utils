@@ -183,6 +183,8 @@ download_thread = threading.Thread(target=download)
 
 def download_threaded():
     clear_and_set(file_field, "")
+    progress_bar["value"] = 0
+    progress_bar.update()
 
     download_thread = threading.Thread(target=download)
     download_thread.start()
@@ -198,11 +200,11 @@ should_be_playlist = tk.BooleanVar(value=False)
 
 ### ------ Download ------
 
-download_frame = ttk.Labelframe(root, text="Download", padding=(10, 5, 10, 10))
-download_frame.pack(padx=10, pady=10, fill="both")
-download_frame.columnconfigure(1, weight=1)
+download_labelframe = ttk.Labelframe(root, text="Download", padding=(10, 5, 10, 10))
+download_labelframe.pack(padx=10, pady=10, fill="both")
+download_labelframe.columnconfigure(1, weight=1)
 
-dir_frame = tk.Frame(download_frame)
+dir_frame = tk.Frame(download_labelframe)
 dir_frame.pack(padx=10, pady=5, fill="both")
 dir_frame.columnconfigure(0, weight=1)
 
@@ -213,14 +215,14 @@ dir_field.grid(column=0, row=0, padx=0, pady=10, sticky="nsew")
 browse_dir_button = tk.Button(dir_frame, text="Browse folder", command=browse_folder)
 browse_dir_button.grid(column=1, row=0, padx=0, pady=10, sticky="nsew")
 
-label = tk.Label(download_frame, text="COPY youtube, bandcamp, etc. URL HERE:")
+label = tk.Label(download_labelframe, text="COPY youtube, bandcamp, etc. URL HERE:")
 label.pack(pady=3, padx=10)
 
-url_field = tk.Entry(download_frame, width=30)
+url_field = tk.Entry(download_labelframe, width=30)
 url_field.insert(0, video_url)
 url_field.pack(pady=5, padx=10, fill="both")
 
-checks_frame = tk.Frame(download_frame)
+checks_frame = tk.Frame(download_labelframe)
 checks_frame.pack(padx=10, fill="both")
 checks_frame.columnconfigure(0, weight=1)
 checks_frame.columnconfigure(1, weight=1)
@@ -239,20 +241,29 @@ dl_button = tk.Button(checks_frame, text="Download", command=download_threaded)
 dl_button.grid(row=0, column=1, rowspan=2, sticky="nsew")
 
 progress_bar = ttk.Progressbar(
-    download_frame, orient=tk.HORIZONTAL, length=200, mode="determinate", maximum=100
+    download_labelframe,
+    orient=tk.HORIZONTAL,
+    length=200,
+    mode="determinate",
+    maximum=100,
 )
 progress_bar.pack(padx=10, pady=10, fill="both")
 
 ### ------ Metadata ------
 
-meta_frame = ttk.Labelframe(root, text="Metadata", padding=(10, 5, 10, 10))
-meta_frame.pack(padx=10, pady=5, fill="both")
-meta_frame.columnconfigure(1, weight=1)
+meta_labelframe = ttk.Labelframe(root, text="Metadata", padding=(10, 5, 10, 10))
+meta_labelframe.pack(padx=10, pady=10, fill="both")
+# meta_labelframe.columnconfigure(1, weight=1)
+
+fields_frame = tk.Frame(meta_labelframe)
+fields_frame.pack(fill="both")
+fields_frame.columnconfigure(1, weight=1)
+
 
 def line_field(row, label):
-    _label = tk.Label(meta_frame, text=label)
+    _label = tk.Label(fields_frame, text=label, width=10)
     _label.grid(row=row, column=0, padx=10, pady=10, sticky="nsew")
-    _field = tk.Entry(meta_frame, width=30)
+    _field = tk.Entry(fields_frame, width=30)
     _field.grid(row=row, column=1, padx=10, pady=10, sticky="nsew")
     _field.config(state="disabled")
     return _field
@@ -262,16 +273,15 @@ file_field = line_field(0, "File")
 artist_field = line_field(1, "Artist")
 title_field = line_field(2, "Title")
 
-bottom_buttons_frame = tk.Frame(meta_frame)
-bottom_buttons_frame.pack(padx=10, pady=5, fill="both")
-bottom_buttons_frame.columnconfigure(0, weight=1)
+bottom_buttons_frame = tk.Frame(meta_labelframe)
+bottom_buttons_frame.pack(fill="both")
+bottom_buttons_frame.columnconfigure(1, weight=1)
 
-set_meta_button = tk.Button(
-    bottom_buttons_frame, text="Save metadata", command=write_meta
-)
-set_meta_button.grid(column=0, row=0, padx=5)
+def bottom_button(column, text, command):
+    button = tk.Button(bottom_buttons_frame, text=text, command=command)
+    button.grid(column=column, row=0, padx=5, pady=5, sticky="nsew")
 
-read_meta_button = tk.Button(bottom_buttons_frame, text="Read meta", command=read_meta)
-read_meta_button.grid(column=1, row=0, padx=5)
+bottom_button(0, "Load metadata", read_meta)
+bottom_button(1, "Save metadata", write_meta)
 
 root.mainloop()
