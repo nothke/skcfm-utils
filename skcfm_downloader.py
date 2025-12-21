@@ -7,6 +7,7 @@ from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 import re
 import threading
+from pathlib import Path
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
@@ -14,8 +15,7 @@ video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your v
 def browse_folder():
     dir_selected = filedialog.askdirectory()
     if dir_selected:
-        dir_field.delete(0, tk.END)
-        dir_field.insert(0, dir_selected)
+        clear_and_set(dir_field, dir_selected)
         print(f"Selected folder: {dir_selected}")
 
 
@@ -37,7 +37,7 @@ def generate_meta():
 
 
 def my_hook(d):
-    print(f"\n\nSTATUS:{d['status']}\n\n")
+    # print(f"\n\nSTATUS:{d['status']}\n\n")
     if d["status"] == "downloading":
         # Get progress information
         total_bytes = d.get("total_bytes") or d.get("total_bytes_estimate")
@@ -63,8 +63,13 @@ def my_hook(d):
         progress_bar["value"] = 100
 
         file_field.config(state="normal")
-        file_field.delete(0, tk.END)
-        file_field.insert(0, d["filename"])
+
+        filepath, _ = os.path.splitext(d["filename"])
+        filepath += ".mp3"
+
+        print(filepath)
+
+        clear_and_set(file_field, filepath)
 
         author_field.config(state="normal")
         title_field.config(state="normal")
@@ -72,32 +77,66 @@ def my_hook(d):
         if should_set_meta.get():
             generate_meta()
 
+
 def clear_and_set(field, str):
     field.delete(0, tk.END)
     field.insert(0, str)
 
-def read_meta():
+
+def get_filepath():
     filename = file_field.get()
+    return os.path.join(dir_field.get(), filename)
 
-    audio = MP3(filename, ID3=EasyID3)
-    title = audio.get("title")
-    artist = audio.get("artist")
 
-    if title:
-        print(f"Title: {title[0]}")
-        clear_and_set(title_field, title[0])
+def read_meta():
+    filename = get_filepath()
+    _, extension = os.path.splitext(filename)
+
+    if filename == "":
+        print("filepath empty")
+    elif not Path(filename).exists():
+        print(f"file '{filename}' doesn't exist")
+    elif extension != ".mp3":
+        print(f"file not mp3 '{extension}'")
     else:
-        print("Title not found")
+        print(f"Found '{filename}'")
 
-    if artist:
-        print(f"Artist: {artist[0]}")
-        clear_and_set(author_field, artist[0])
+        audio = MP3(filename, ID3=EasyID3)
+        title = audio.get("title")
+        artist = audio.get("artist")
+
+        if title:
+            print(f"Title: {title[0]}")
+            clear_and_set(title_field, title[0])
+        else:
+            print("Title not found")
+
+        if artist:
+            print(f"Artist: {artist[0]}")
+            clear_and_set(author_field, artist[0])
+        else:
+            print("Artist not found")
+
+        # print(f"Title: {}")
+        # print(f"Artist: {audio['artist'][0]}")
+        print(f"Length (seconds): {int(audio.info.length)}")
+
+
+def write_meta():
+    filename = get_filepath()
+    _, extension = os.path.splitext(filename)
+
+    if filename == "":
+        print("filepath empty")
+    elif not Path(filename).exists():
+        print(f"file '{filename}' doesn't exist")
+    elif extension != ".mp3":
+        print(f"file not mp3 '{extension}'")
     else:
-        print("Artist not found")
-
-    # print(f"Title: {}")
-    # print(f"Artist: {audio['artist'][0]}")
-    print(f"Length (seconds): {int(audio.info.length)}")
+        audio = MP3(filename, ID3=EasyID3)
+        audio["title"] = title_field.get()
+        audio["artist"] = author_field.get()
+        audio.save()
 
 
 # Define options (see yt-dlp documentation for all options)
@@ -145,10 +184,6 @@ download_thread = threading.Thread(target=download)
 def download_threaded():
     download_thread = threading.Thread(target=download)
     download_thread.start()
-
-
-def set_meta():
-    pass
 
 
 # Create the main window
@@ -222,7 +257,7 @@ bottom_buttons_frame = tk.Frame()
 bottom_buttons_frame.pack(padx=10, pady=10, fill="both")
 
 set_meta_button = tk.Button(
-    bottom_buttons_frame, text="Save metadata", command=set_meta
+    bottom_buttons_frame, text="Save metadata", command=write_meta
 )
 set_meta_button.grid(column=0, row=0, padx=5)
 
