@@ -29,8 +29,8 @@ def generate_meta():
 
         print(splits)
 
-        author_field.delete(0, tk.END)
-        author_field.insert(0, splits[0].strip())
+        artist_field.delete(0, tk.END)
+        artist_field.insert(0, splits[0].strip())
         if len(splits) > 1:
             title_field.delete(0, tk.END)
             title_field.insert(0, splits[1].strip())
@@ -71,7 +71,7 @@ def my_hook(d):
 
         clear_and_set(file_field, filepath)
 
-        author_field.config(state="normal")
+        artist_field.config(state="normal")
         title_field.config(state="normal")
 
         if should_set_meta.get():
@@ -113,7 +113,7 @@ def read_meta():
 
         if artist:
             print(f"Artist: {artist[0]}")
-            clear_and_set(author_field, artist[0])
+            clear_and_set(artist_field, artist[0])
         else:
             print("Artist not found")
 
@@ -135,7 +135,7 @@ def write_meta():
     else:
         audio = MP3(filename, ID3=EasyID3)
         audio["title"] = title_field.get()
-        audio["artist"] = author_field.get()
+        audio["artist"] = artist_field.get()
         audio.save()
 
 
@@ -182,6 +182,8 @@ download_thread = threading.Thread(target=download)
 
 
 def download_threaded():
+    clear_and_set(file_field, "")
+
     download_thread = threading.Thread(target=download)
     download_thread.start()
 
@@ -194,7 +196,13 @@ root.minsize(600, 100)
 should_set_meta = tk.BooleanVar(value=True)
 should_be_playlist = tk.BooleanVar(value=False)
 
-dir_frame = tk.Frame()
+### ------ Download ------
+
+download_frame = ttk.Labelframe(root, text="Download", padding=(10, 5, 10, 10))
+download_frame.pack(padx=10, pady=10, fill="both")
+download_frame.columnconfigure(1, weight=1)
+
+dir_frame = tk.Frame(download_frame)
 dir_frame.pack(padx=10, pady=5, fill="both")
 dir_frame.columnconfigure(0, weight=1)
 
@@ -205,14 +213,14 @@ dir_field.grid(column=0, row=0, padx=0, pady=10, sticky="nsew")
 browse_dir_button = tk.Button(dir_frame, text="Browse folder", command=browse_folder)
 browse_dir_button.grid(column=1, row=0, padx=0, pady=10, sticky="nsew")
 
-label = tk.Label(root, text="COPY youtube, bandcamp, etc. URL HERE:")
-label.pack()  # Arrange the label within the window
+label = tk.Label(download_frame, text="COPY youtube, bandcamp, etc. URL HERE:")
+label.pack(pady=3, padx=10)
 
-url_field = tk.Entry(root, width=30)
+url_field = tk.Entry(download_frame, width=30)
 url_field.insert(0, video_url)
 url_field.pack(pady=5, padx=10, fill="both")
 
-checks_frame = tk.Frame()
+checks_frame = tk.Frame(download_frame)
 checks_frame.pack(padx=10, fill="both")
 checks_frame.columnconfigure(0, weight=1)
 checks_frame.columnconfigure(1, weight=1)
@@ -231,14 +239,15 @@ dl_button = tk.Button(checks_frame, text="Download", command=download_threaded)
 dl_button.grid(row=0, column=1, rowspan=2, sticky="nsew")
 
 progress_bar = ttk.Progressbar(
-    root, orient=tk.HORIZONTAL, length=200, mode="determinate", maximum=100
+    download_frame, orient=tk.HORIZONTAL, length=200, mode="determinate", maximum=100
 )
-progress_bar.pack(padx=10, pady=5, fill="both")
+progress_bar.pack(padx=10, pady=10, fill="both")
 
-meta_frame = tk.Frame()
-meta_frame.pack(padx=10, fill="both")
+### ------ Metadata ------
+
+meta_frame = ttk.Labelframe(root, text="Metadata", padding=(10, 5, 10, 10))
+meta_frame.pack(padx=10, pady=5, fill="both")
 meta_frame.columnconfigure(1, weight=1)
-
 
 def line_field(row, label):
     _label = tk.Label(meta_frame, text=label)
@@ -250,11 +259,12 @@ def line_field(row, label):
 
 
 file_field = line_field(0, "File")
-title_field = line_field(1, "Title")
-author_field = line_field(2, "Author")
+artist_field = line_field(1, "Artist")
+title_field = line_field(2, "Title")
 
-bottom_buttons_frame = tk.Frame()
-bottom_buttons_frame.pack(padx=10, pady=10, fill="both")
+bottom_buttons_frame = tk.Frame(meta_frame)
+bottom_buttons_frame.pack(padx=10, pady=5, fill="both")
+bottom_buttons_frame.columnconfigure(0, weight=1)
 
 set_meta_button = tk.Button(
     bottom_buttons_frame, text="Save metadata", command=write_meta
@@ -264,5 +274,4 @@ set_meta_button.grid(column=0, row=0, padx=5)
 read_meta_button = tk.Button(bottom_buttons_frame, text="Read meta", command=read_meta)
 read_meta_button.grid(column=1, row=0, padx=5)
 
-# Start the event loop
 root.mainloop()
