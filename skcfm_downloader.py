@@ -19,24 +19,7 @@ def browse_folder():
         clear_and_set(dir_field, dir_selected)
         print(f"Selected folder: {dir_selected}")
 
-
-def generate_meta():
-    if file_field.get():
-        filename = file_field.get()
-
-        delimiters = [" - ", "(", "["]
-        regex_pattern = "|".join(map(re.escape, delimiters))
-        splits = re.split(regex_pattern, filename)
-
-        print(splits)
-
-        artist_field.delete(0, tk.END)
-        artist_field.insert(0, splits[0].strip())
-        if len(splits) > 1:
-            title_field.delete(0, tk.END)
-            title_field.insert(0, splits[1].strip())
-
-def load_metadata_file(filepath):
+def load_file(filepath):
     file_field.config(state="normal")
     clear_and_set(file_field, filepath)
 
@@ -76,10 +59,11 @@ def my_hook(d):
 
         print(filepath)
 
-        load_metadata_file(filepath)
+        load_file(filepath)
 
         if should_set_meta.get():
-            generate_meta()
+            auto_meta_from_filename()
+            write_meta()
 
 
 def clear_and_set(field, str):
@@ -129,6 +113,22 @@ def write_meta():
             song.tags["ARTIST"] = [title_field.get()]
             song.tags["TITLE"] = [artist_field.get()]
 
+def auto_meta_from_filename():
+    if file_field.get():
+        filename = file_field.get()
+
+        regex_hyphen = "|".join(map(re.escape, [" - "]))
+        regex_parenth = "|".join(map(re.escape, ["(", "["]))
+        splits = re.split(regex_hyphen, filename)
+
+        if len(splits) > 1:
+            title_splits = re.split(regex_parenth, splits[1])
+            clear_and_set(artist_field, splits[0].strip())
+            clear_and_set(title_field, title_splits[0].strip())
+        else:
+            title_splits = re.split(regex_parenth, splits[0])
+            clear_and_set(title_field, title_splits[0].strip())
+
 # Define options (see yt-dlp documentation for all options)
 ydl_opts = {
     "format": "bestaudio/best",
@@ -159,6 +159,9 @@ def show_entry_field_content():
 def download():
     video_url = url_field.get()
 
+    progress_bar["value"] = 5
+    progress_bar.update()
+
     if not should_be_playlist.get():
         video_url = video_url.split("&", 1)[0]
 
@@ -180,13 +183,16 @@ def download_threaded():
     download_thread.start()
 
 def drop_in_file(event):
-    load_metadata_file(root.tk.splitlist(event.data)[0])
+    load_file(root.tk.splitlist(event.data)[0])
     read_meta()
 
 # Create the main window
 root = TkinterDnD.Tk() #tk.Tk()
 root.title("SKC.fm Downloader")
 root.minsize(600, 100)
+
+# style = ttk.Style()
+# style.theme_use('clam')
 
 root.drop_target_register(DND_FILES)
 root.dnd_bind('<<Drop>>', drop_in_file)
@@ -224,7 +230,7 @@ checks_frame.columnconfigure(0, weight=1)
 checks_frame.columnconfigure(1, weight=1)
 
 auto_meta_check = tk.Checkbutton(
-    checks_frame, text="Auto meta", variable=should_set_meta
+    checks_frame, text="Auto meta from filename", variable=should_set_meta
 )
 auto_meta_check.grid(row=0, column=0, sticky="w")
 
