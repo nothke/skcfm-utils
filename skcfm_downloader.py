@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
@@ -10,14 +11,15 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 import taglib
 
 
-
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
+
 def browse_folder():
-    dir_selected = filedialog.askdirectory()
+    dir_selected = filedialog.askdirectory(initialdir=dir_field.get())
     if dir_selected:
         clear_and_set(dir_field, dir_selected)
         print(f"Selected folder: {dir_selected}")
+
 
 def load_file(filepath):
     file_field.config(state="normal")
@@ -26,7 +28,9 @@ def load_file(filepath):
     artist_field.config(state="normal")
     title_field.config(state="normal")
 
-def my_hook(d):
+    
+
+def ytdlp_hook(d):
     # print(f"\n\nSTATUS:{d['status']}\n\n")
     if d["status"] == "downloading":
         # Get progress information
@@ -49,15 +53,32 @@ def my_hook(d):
         print("Starting pre-processing...")
 
     elif d["status"] == "finished":
-        print(f"\nDone downloading {d['filename']}")
+        print(f"\nSKCSKCSKC: Done downloading {d['filename']}")
+
+def ytdlp_postprocessor_hook(d):
+    if d['status'] == 'started':
+        print(f"SKCSKCSKC: Post-processor started: {d.get('pp', {}).get('__name__')}")
+        progress_bar["value"] = 50
+        progress_bar.update()
+    elif d['status'] == 'finished':
+        print(f"Final file location: {d['info_dict']['filepath']}")
+
+        # print("\n\n================================\n\n")
+        # safe_string = str(d).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+        # print(safe_string)
+        # print("\n\n================================\n\n")
+
         progress_bar["value"] = 100
+        progress_bar.update()
 
-        file_field.config(state="normal")
+        filepath = d['info_dict']['filepath'] # this is ffmpeg specific
 
-        filepath, _ = os.path.splitext(d["filename"])
-        filepath += ".mp3"
+        filename, ext = os.path.splitext(filepath)
+        if ext != ".mp3":
+            print(f"Error: Expected .mp3 found {ext}")
+            filepath = filename + ".mp3"
 
-        print(filepath)
+        print(f"\nSKCSKCSKC: Done post processing {filepath}")
 
         load_file(filepath)
 
@@ -65,6 +86,11 @@ def my_hook(d):
             auto_meta_from_filename()
             write_meta()
 
+    elif d['status'] == 'processing':
+        print(f"SKCSKCSKC: Processing progress: {d.get('progress_stats', {}).get('percentage')}%")
+        percent = d.get('progress_stats', {}).get('percentage')
+        progress_bar["value"] = int(percent)
+        progress_bar.update()
 
 def clear_and_set(field, str):
     field.delete(0, tk.END)
@@ -74,6 +100,11 @@ def clear_and_set(field, str):
 def get_filepath():
     filename = file_field.get()
     return os.path.join(dir_field.get(), filename)
+
+
+def get_filename_only():
+    p = Path(file_field.get())
+    return p.stem
 
 
 def read_meta():
@@ -113,10 +144,11 @@ def write_meta():
             song.tags["ARTIST"] = [title_field.get()]
             song.tags["TITLE"] = [artist_field.get()]
 
-def auto_meta_from_filename():
-    if file_field.get():
-        filename = file_field.get()
 
+def auto_meta_from_filename():
+    filename = get_filename_only()
+
+    if filename:
         regex_hyphen = "|".join(map(re.escape, [" - "]))
         regex_parenth = "|".join(map(re.escape, ["(", "["]))
         splits = re.split(regex_hyphen, filename)
@@ -129,6 +161,7 @@ def auto_meta_from_filename():
             title_splits = re.split(regex_parenth, splits[0])
             clear_and_set(title_field, title_splits[0].strip())
 
+
 # Define options (see yt-dlp documentation for all options)
 ydl_opts = {
     "format": "bestaudio/best",
@@ -136,8 +169,12 @@ ydl_opts = {
     #'outtmpl': '%(title)s.%(ext)s',       # Output file name template
     "audio_format": "mp3",  # Set the final container format
     "audio_quality": 0,
-    "progress_hooks": [my_hook],  # Optional: Add a progress hook
+    "progress_hooks": [ytdlp_hook],  # Optional: Add a progress hook
     "verbose": True,
+    "paths": {
+        "home": os.getcwd(),
+    },
+    # 'noplaylist': True,          # download single video if URL is a playlist item
     "postprocessors": [
         {
             "key": "FFmpegExtractAudio",
@@ -145,6 +182,7 @@ ydl_opts = {
             "preferredquality": "0",  # Specifies the quality (0 for best)
         }
     ],
+    'postprocessor_hooks': [ytdlp_postprocessor_hook], 
 }
 
 # yt-dlp -x --audio-format best --audio-quality 0 URL
@@ -158,6 +196,8 @@ def show_entry_field_content():
 
 def download():
     video_url = url_field.get()
+
+    ydl_opts["paths"]["home"] = dir_field.get()
 
     progress_bar["value"] = 5
     progress_bar.update()
@@ -182,12 +222,14 @@ def download_threaded():
     download_thread = threading.Thread(target=download)
     download_thread.start()
 
+
 def drop_in_file(event):
     load_file(root.tk.splitlist(event.data)[0])
     read_meta()
 
+
 # Create the main window
-root = TkinterDnD.Tk() #tk.Tk()
+root = TkinterDnD.Tk()  # tk.Tk()
 root.title("SKC.fm Downloader")
 root.minsize(600, 100)
 
@@ -195,7 +237,7 @@ root.minsize(600, 100)
 # style.theme_use('clam')
 
 root.drop_target_register(DND_FILES)
-root.dnd_bind('<<Drop>>', drop_in_file)
+root.dnd_bind("<<Drop>>", drop_in_file)
 
 should_set_meta = tk.BooleanVar(value=True)
 should_be_playlist = tk.BooleanVar(value=False)
@@ -279,9 +321,11 @@ bottom_buttons_frame = tk.Frame(meta_labelframe)
 bottom_buttons_frame.pack(fill="both")
 bottom_buttons_frame.columnconfigure(1, weight=1)
 
+
 def bottom_button(column, text, command):
     button = tk.Button(bottom_buttons_frame, text=text, command=command)
     button.grid(column=column, row=0, padx=5, pady=5, sticky="nsew")
+
 
 bottom_button(0, "Load metadata", read_meta)
 bottom_button(1, "Save metadata", write_meta)
