@@ -1,0 +1,9 @@
+## TODO:
+
+### Downloader
+- [x] Download song
+- [x] Set metadata of single song
+- [x] Auto meta from video title
+- [ ] Drag and drop file to GUI
+- [ ] Proppfrexx play next
+- [ ] Proppfrexx play now
