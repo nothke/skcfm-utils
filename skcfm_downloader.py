@@ -8,9 +8,9 @@ from mutagen.easyid3 import EasyID3
 import re
 import threading
 from pathlib import Path
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
-
 
 def browse_folder():
     dir_selected = filedialog.askdirectory()
@@ -35,6 +35,12 @@ def generate_meta():
             title_field.delete(0, tk.END)
             title_field.insert(0, splits[1].strip())
 
+def load_metadata_file(filepath):
+    file_field.config(state="normal")
+    clear_and_set(file_field, filepath)
+
+    artist_field.config(state="normal")
+    title_field.config(state="normal")
 
 def my_hook(d):
     # print(f"\n\nSTATUS:{d['status']}\n\n")
@@ -69,10 +75,7 @@ def my_hook(d):
 
         print(filepath)
 
-        clear_and_set(file_field, filepath)
-
-        artist_field.config(state="normal")
-        title_field.config(state="normal")
+        load_metadata_file(filepath)
 
         if should_set_meta.get():
             generate_meta()
@@ -189,11 +192,17 @@ def download_threaded():
     download_thread = threading.Thread(target=download)
     download_thread.start()
 
+def drop_in_file(event):
+    load_metadata_file(root.tk.splitlist(event.data)[0])
+    read_meta()
 
 # Create the main window
-root = tk.Tk()
+root = TkinterDnD.Tk() #tk.Tk()
 root.title("SKC.fm Downloader")
 root.minsize(600, 100)
+
+root.drop_target_register(DND_FILES)
+root.dnd_bind('<<Drop>>', drop_in_file)
 
 should_set_meta = tk.BooleanVar(value=True)
 should_be_playlist = tk.BooleanVar(value=False)
