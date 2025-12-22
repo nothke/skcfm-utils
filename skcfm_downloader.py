@@ -3,12 +3,13 @@ from tkinter import filedialog
 from tkinter import ttk
 import yt_dlp
 import os
-from mutagen.mp3 import MP3
-from mutagen.easyid3 import EasyID3
 import re
 import threading
 from pathlib import Path
 from tkinterdnd2 import DND_FILES, TkinterDnD
+import taglib
+
+
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
@@ -93,54 +94,40 @@ def get_filepath():
 
 def read_meta():
     filename = get_filepath()
-    _, extension = os.path.splitext(filename)
 
     if filename == "":
         print("filepath empty")
     elif not Path(filename).exists():
         print(f"file '{filename}' doesn't exist")
-    elif extension != ".mp3":
-        print(f"file not mp3 '{extension}'")
     else:
-        print(f"Found '{filename}'")
+        with taglib.File(filename, save_on_exit=False) as song:
+            artist = song.tags["ARTIST"]
+            title = song.tags["TITLE"]
 
-        audio = MP3(filename, ID3=EasyID3)
-        title = audio.get("title")
-        artist = audio.get("artist")
+            if title:
+                print(f"Title: {title[0]}")
+                clear_and_set(title_field, title[0])
+            else:
+                print("Title not found")
 
-        if title:
-            print(f"Title: {title[0]}")
-            clear_and_set(title_field, title[0])
-        else:
-            print("Title not found")
-
-        if artist:
-            print(f"Artist: {artist[0]}")
-            clear_and_set(artist_field, artist[0])
-        else:
-            print("Artist not found")
-
-        # print(f"Title: {}")
-        # print(f"Artist: {audio['artist'][0]}")
-        print(f"Length (seconds): {int(audio.info.length)}")
+            if artist:
+                print(f"Artist: {artist[0]}")
+                clear_and_set(artist_field, artist[0])
+            else:
+                print("Artist not found")
 
 
 def write_meta():
     filename = get_filepath()
-    _, extension = os.path.splitext(filename)
 
     if filename == "":
         print("filepath empty")
     elif not Path(filename).exists():
         print(f"file '{filename}' doesn't exist")
-    elif extension != ".mp3":
-        print(f"file not mp3 '{extension}'")
     else:
-        audio = MP3(filename, ID3=EasyID3)
-        audio["title"] = title_field.get()
-        audio["artist"] = artist_field.get()
-        audio.save()
-
+        with taglib.File(filename, save_on_exit=True) as song:
+            song.tags["ARTIST"] = [title_field.get()]
+            song.tags["TITLE"] = [artist_field.get()]
 
 # Define options (see yt-dlp documentation for all options)
 ydl_opts = {
