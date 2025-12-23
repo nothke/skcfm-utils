@@ -11,11 +11,9 @@ import taglib
 import requests
 import time
 
+print("Dobro vece")
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
-
-gpio_port = 9042
-
 
 def post(name, command):
     cmd = "http://localhost:8081/commands"
@@ -294,7 +292,7 @@ def drop_in_file(event):
 
 # Create the main window
 root = TkinterDnD.Tk()  # tk.Tk()
-root.title("SKC.fm Downloader")
+root.title("SKC.fm Downloader 5000 - Mišatel TRIAL LICENSE - Expires in NaN")
 root.minsize(600, 100)
 
 # style = ttk.Style()
@@ -412,5 +410,8 @@ pf_button(0, "Ping", proppfrexx_ping)
 pf_button(1, "Queue last", proppfrexx_queue_last)
 pf_button(2, "Queue next", proppfrexx_set_next)
 pf_button(3, "Play NOW", proppfrexx_play_now)
+
+footer = tk.Label(root, text="Powered by Mišatel")
+footer.pack(padx=10, pady=10)
 
 root.mainloop()
