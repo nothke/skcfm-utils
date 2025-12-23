@@ -117,7 +117,7 @@ def ytdlp_hook(d):
 
         root.update_idletasks()
 
-        if total_bytes and downloaded_bytes:
+        if total_bytes and downloaded_bytes and speed and eta:
             percent = (downloaded_bytes / total_bytes) * 100
             print(
                 f"########## Downloading: {percent:.1f}% at {speed / 1024 / 1024:.2f} MiB/s, ETA: {eta} seconds"
