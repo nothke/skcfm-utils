@@ -37,7 +37,23 @@ def proppfrexx_queue_last():
         time.sleep(0.5)
 
         print(f"Queued {get_filepath()} as last track in playlist")
-        read_meta()
+        read_meta(set_fields=False)
+
+def proppfrexx_queue_after_selected():
+    if path_is_valid():
+        get_selected = post("Index of next track", "PLS_CURRENT_GET_SELECTEDINDEX")
+        num = int(get_selected.text)
+
+        print(f"Should be placed at {num}")
+
+        post("Append file", f"PLS_CURRENT_APPEND_FILE {get_filepath()}")
+        time.sleep(0.5)
+        post("Select last", "PLS_CURRENT_SELECT_ENTRY LAST")
+        time.sleep(0.5)
+        post("Move after selected index", f"PLS_CURRENT_MOVE_TO {num}")
+
+        print(f"Queued {get_filepath()} after selected")
+        read_meta(set_fields=False)
 
 
 def proppfrexx_set_next():
@@ -56,7 +72,7 @@ def proppfrexx_set_next():
         post("Load track", "PLS_CURRENT_LOAD_SELECTED")
 
         print(f"Queued {get_filepath()} as next track")
-        read_meta()
+        read_meta(set_fields=False)
 
 
 def proppfrexx_play_now():
@@ -67,7 +83,7 @@ def proppfrexx_play_now():
         post("Load track", "PLS_CURRENT_PLAY_NEXT")
 
         print(f"Playing {get_filepath()} now! (..with crossfade)")
-        read_meta()
+        read_meta(set_fields=False)
 
 
 def browse_folder():
@@ -177,8 +193,7 @@ def get_filename_only():
     p = Path(file_field.get())
     return p.stem
 
-
-def read_meta():
+def read_meta(set_fields=True):
     filename = get_filepath()
 
     if filename == "":
@@ -192,13 +207,15 @@ def read_meta():
 
             if title:
                 print(f"Title: {title[0]}")
-                clear_and_set(title_field, title[0])
+                if set_fields:
+                    clear_and_set(title_field, title[0])
             else:
                 print("Title not found")
 
             if artist:
                 print(f"Artist: {artist[0]}")
-                clear_and_set(artist_field, artist[0])
+                if set_fields:
+                    clear_and_set(artist_field, artist[0])
             else:
                 print("Artist not found")
 
@@ -409,7 +426,7 @@ proppfrexx_labelframe = ttk.Labelframe(
     root, text="ProppFrexx control", padding=(10, 5, 10, 10)
 )
 proppfrexx_labelframe.pack(padx=10, pady=10, fill="both")
-proppfrexx_labelframe.columnconfigure(2, weight=1)
+proppfrexx_labelframe.columnconfigure(3, weight=1)
 
 
 def pf_button(column, text, command):
@@ -419,8 +436,9 @@ def pf_button(column, text, command):
 
 pf_button(0, "Ping", proppfrexx_ping)
 pf_button(1, "Queue last", proppfrexx_queue_last)
-pf_button(2, "Queue next", proppfrexx_set_next)
-pf_button(3, "Play NOW", proppfrexx_play_now)
+pf_button(2, "Queue after selected", proppfrexx_queue_after_selected)
+pf_button(3, "Queue next", proppfrexx_set_next)
+pf_button(4, "Play NOW", proppfrexx_play_now)
 
 footer = tk.Label(root, text="Powered by Mišatel")
 footer.pack(padx=10, pady=10)

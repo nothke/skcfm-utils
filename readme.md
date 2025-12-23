@@ -15,3 +15,4 @@
 - [x] More feedback - metadata set
 - [x] post requests should echo
 - [x] Metadata artist-track fix
+- [x] Proppfrexx add after selected
