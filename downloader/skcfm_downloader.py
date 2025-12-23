@@ -42,7 +42,7 @@ def proppfrexx_queue_last():
 def proppfrexx_queue_after_selected():
     if path_is_valid():
         get_selected = post("Index of next track", "PLS_CURRENT_GET_SELECTEDINDEX")
-        num = int(get_selected.text)
+        num = int(get_selected.text) + 2
 
         print(f"Should be placed at {num}")
 
