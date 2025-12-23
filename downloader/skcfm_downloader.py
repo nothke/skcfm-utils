@@ -269,7 +269,7 @@ ydl_opts = {
     "paths": {
         "home": os.getcwd(),
     },
-    # 'noplaylist': True,          # download single video if URL is a playlist item
+    "noplaylist": True,          # download single video if URL is a playlist item
     "postprocessors": [
         {
             "key": "FFmpegExtractAudio",
@@ -297,10 +297,15 @@ def download():
     progress_bar["value"] = 5
     progress_bar.update()
 
-    if not should_be_playlist.get():
-        video_url = video_url.split("&", 1)[0]
+    playlist = should_be_playlist.get()
 
-    print(f"Downloading from: '{video_url}'")
+    ydl_opts["noplaylist"] = not playlist
+    # video_url = video_url.split("&", 1)[0]
+
+    if playlist:
+        print(f"Downloading playlist from: '{video_url}'")
+    else:
+        print(f"Downloading single-track from: '{video_url}'")
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([video_url])
