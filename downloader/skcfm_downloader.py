@@ -203,8 +203,8 @@ def write_meta():
         print(f"file '{filename}' doesn't exist")
     else:
         with taglib.File(filename, save_on_exit=True) as song:
-            song.tags["ARTIST"] = [title_field.get()]
-            song.tags["TITLE"] = [artist_field.get()]
+            song.tags["ARTIST"] = [artist_field.get()]
+            song.tags["TITLE"] = [title_field.get()]
 
 
 def auto_meta_from_filename():
