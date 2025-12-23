@@ -15,6 +15,21 @@ print("Dobro vece")
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
+def get_file_id(file_path):
+    """
+    Gets the unique file ID (st_ino) for a given file path on Windows.
+    This ID is unique to the volume.
+    """
+    try:
+        stat_info = os.stat(file_path)
+        # On Windows, st_ino is the file's unique ID on that volume.
+        file_id = stat_info.st_ino
+        return file_id
+    except FileNotFoundError:
+        return "File not found"
+    except Exception as e:
+        return f"An error occurred: {e}"
+
 def post(name, command):
     cmd = "http://localhost:8081/commands"
     pw = ("ProppFrexx", "slavoljub")
@@ -33,7 +48,7 @@ def proppfrexx_ping():
 
 def proppfrexx_queue_last():
     if path_is_valid():
-        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_filepath())
+        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_file_id(get_filepath()))
         time.sleep(0.5)
 
 
@@ -44,7 +59,7 @@ def proppfrexx_set_next():
 
         print(f"Should be placed at {num}")
 
-        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_filepath())
+        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_file_id(get_filepath()))
         time.sleep(0.5)
         post("Select last", "PLS_CURRENT_SELECT_ENTRY LAST")
         time.sleep(0.5)
@@ -257,7 +272,7 @@ def show_entry_field_content():
 
 
 def download():
-    video_url = url_field.get()
+    video_url = url_field.get()\
 
     ydl_opts["paths"]["home"] = dir_field.get()
 
