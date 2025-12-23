@@ -404,17 +404,18 @@ fields_frame.pack(fill="both")
 fields_frame.columnconfigure(1, weight=1)
 
 
-def line_field(row, label):
+def line_field(row, label, enable=False):
     _label = tk.Label(fields_frame, text=label, width=10)
     _label.grid(row=row, column=0, padx=10, pady=10, sticky="nsew")
     _field = tk.Entry(fields_frame, width=30)
     _field.grid(row=row, column=1, padx=10, pady=10, sticky="nsew")
-    _field.config(state="disabled")
+    if not enable:
+        _field.config(state="disabled")
     return _field
 
 
 file_field = line_field(0, "File")
-artist_field = line_field(1, "Artist")
+artist_field = line_field(1, "Artist", enable=True)
 title_field = line_field(2, "Title")
 
 bottom_buttons_frame = tk.Frame(meta_labelframe)
