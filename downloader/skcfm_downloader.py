@@ -33,7 +33,7 @@ def get_file_id(file_path):
 def post(name, command):
     cmd = "http://localhost:8081/commands"
     pw = ("ProppFrexx", "slavoljub")
-    h = {"Content-Type": "text/plain"}
+    h = {"Content-Type": "text/plain; charset=utf-8"}
 
     request = requests.post(cmd, auth=pw, headers=h, data=command)
 
