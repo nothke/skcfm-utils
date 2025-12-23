@@ -1,4 +1,3 @@
-import sys
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
@@ -9,9 +8,59 @@ import threading
 from pathlib import Path
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import taglib
+import requests
+import time
 
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
+
+gpio_port = 9042
+
+
+def post(name, command):
+    cmd = "http://localhost:8081/commands"
+    pw = ("ProppFrexx", "slavoljub")
+    h = {"Content-Type": "text/plain"}
+
+    request = requests.post(cmd, auth=pw, headers=h, data=command)
+
+    print(f"{name} response: {request.text}")
+
+    return request
+
+
+def proppfrexx_ping():
+    post("Ping", "PING")
+
+
+def proppfrexx_queue_last():
+    if path_is_valid():
+        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_filepath())
+        time.sleep(0.5)
+
+
+def proppfrexx_set_next():
+    if path_is_valid():
+        get_next = post("Index of next track", "PLS_CURRENT_TRACKNEXT_GET")
+        num = int(get_next.text) - 1
+
+        print(f"Should be placed at {num}")
+
+        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_filepath())
+        time.sleep(0.5)
+        post("Select last", "PLS_CURRENT_SELECT_ENTRY LAST")
+        time.sleep(0.5)
+        post("Move to next index", f"PLS_CURRENT_MOVE_TO {num}")
+        time.sleep(0.5)
+        post("Load track", "PLS_CURRENT_LOAD_SELECTED")
+
+
+def proppfrexx_play_now():
+    if path_is_valid():
+        proppfrexx_set_next()
+
+        time.sleep(0.5)
+        post("Load track", "PLS_CURRENT_PLAY_NEXT")
 
 
 def browse_folder():
@@ -28,7 +77,6 @@ def load_file(filepath):
     artist_field.config(state="normal")
     title_field.config(state="normal")
 
-    
 
 def ytdlp_hook(d):
     # print(f"\n\nSTATUS:{d['status']}\n\n")
@@ -55,12 +103,13 @@ def ytdlp_hook(d):
     elif d["status"] == "finished":
         print(f"\nSKCSKCSKC: Done downloading {d['filename']}")
 
+
 def ytdlp_postprocessor_hook(d):
-    if d['status'] == 'started':
+    if d["status"] == "started":
         print(f"SKCSKCSKC: Post-processor started: {d.get('pp', {}).get('__name__')}")
         progress_bar["value"] = 50
         progress_bar.update()
-    elif d['status'] == 'finished':
+    elif d["status"] == "finished":
         print(f"Final file location: {d['info_dict']['filepath']}")
 
         # print("\n\n================================\n\n")
@@ -71,7 +120,7 @@ def ytdlp_postprocessor_hook(d):
         progress_bar["value"] = 100
         progress_bar.update()
 
-        filepath = d['info_dict']['filepath'] # this is ffmpeg specific
+        filepath = d["info_dict"]["filepath"]  # this is ffmpeg specific
 
         filename, ext = os.path.splitext(filepath)
         if ext != ".mp3":
@@ -86,15 +135,30 @@ def ytdlp_postprocessor_hook(d):
             auto_meta_from_filename()
             write_meta()
 
-    elif d['status'] == 'processing':
-        print(f"SKCSKCSKC: Processing progress: {d.get('progress_stats', {}).get('percentage')}%")
-        percent = d.get('progress_stats', {}).get('percentage')
+    elif d["status"] == "processing":
+        print(
+            f"SKCSKCSKC: Processing progress: {d.get('progress_stats', {}).get('percentage')}%"
+        )
+        percent = d.get("progress_stats", {}).get("percentage")
         progress_bar["value"] = int(percent)
         progress_bar.update()
+
 
 def clear_and_set(field, str):
     field.delete(0, tk.END)
     field.insert(0, str)
+
+
+def path_is_valid():
+    filename = get_filepath()
+    if filename == "":
+        print("filepath empty")
+        return False
+    elif not Path(filename).exists():
+        print(f"file '{filename}' doesn't exist")
+        return False
+    else:
+        return True
 
 
 def get_filepath():
@@ -182,7 +246,7 @@ ydl_opts = {
             "preferredquality": "0",  # Specifies the quality (0 for best)
         }
     ],
-    'postprocessor_hooks': [ytdlp_postprocessor_hook], 
+    "postprocessor_hooks": [ytdlp_postprocessor_hook],
 }
 
 # yt-dlp -x --audio-format best --audio-quality 0 URL
@@ -329,5 +393,24 @@ def bottom_button(column, text, command):
 
 bottom_button(0, "Load metadata", read_meta)
 bottom_button(1, "Save metadata", write_meta)
+
+### ------ ProppFrexx control ------
+
+proppfrexx_labelframe = ttk.Labelframe(
+    root, text="ProppFrexx control", padding=(10, 5, 10, 10)
+)
+proppfrexx_labelframe.pack(padx=10, pady=10, fill="both")
+proppfrexx_labelframe.columnconfigure(2, weight=1)
+
+
+def pf_button(column, text, command):
+    button = tk.Button(proppfrexx_labelframe, text=text, command=command)
+    button.grid(column=column, row=0, padx=5, pady=5, sticky="nsew")
+
+
+pf_button(0, "Ping", proppfrexx_ping)
+pf_button(1, "Queue last", proppfrexx_queue_last)
+pf_button(2, "Queue next", proppfrexx_set_next)
+pf_button(3, "Play NOW", proppfrexx_play_now)
 
 root.mainloop()

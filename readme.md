@@ -7,5 +7,6 @@
 - [X] Drag and drop file to GUI
 - [ ] Support any audio format
 - [x] Working save to folder
-- [ ] Proppfrexx play next
-- [ ] Proppfrexx play now
+- [x] Proppfrexx play next
+- [x] Proppfrexx play now
+- [x] Proppfrexx add to queue
