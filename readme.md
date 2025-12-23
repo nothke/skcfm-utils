@@ -10,3 +10,6 @@
 - [x] Proppfrexx play next
 - [x] Proppfrexx play now
 - [x] Proppfrexx add to queue
+- [ ] Explore button to open the folder
+- [ ] More feedback - metadata set
+- [ ] post requests should echo
