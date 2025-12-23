@@ -10,8 +10,13 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 import taglib
 import requests
 import time
+import sys
 
-print("Dobro vece")
+if sys.getdefaultencoding().lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
+print("Dobro veče")
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
