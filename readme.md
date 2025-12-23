@@ -12,6 +12,6 @@
 - [x] Proppfrexx add to queue
 - [x] venv
 - [ ] Explore button to open the folder
-- [ ] More feedback - metadata set
-- [ ] post requests should echo
-- [ ] Normalized metadata
+- [x] More feedback - metadata set
+- [x] post requests should echo
+- [x] Metadata artist-track fix

@@ -22,7 +22,7 @@ def post(name, command):
 
     request = requests.post(cmd, auth=pw, headers=h, data=command)
 
-    print(f"{name}, command: '{command}', response: {request.text}")
+    print(f"POST {name}, command: '{command}', response: {request.text}")
 
     return request
 
@@ -35,6 +35,9 @@ def proppfrexx_queue_last():
     if path_is_valid():
         post("Append file", f"PLS_CURRENT_APPEND_FILE {get_filepath()}")
         time.sleep(0.5)
+
+        print(f"Queued {get_filepath()} as last track in playlist")
+        read_meta()
 
 
 def proppfrexx_set_next():
@@ -52,6 +55,9 @@ def proppfrexx_set_next():
         time.sleep(0.5)
         post("Load track", "PLS_CURRENT_LOAD_SELECTED")
 
+        print(f"Queued {get_filepath()} as next track")
+        read_meta()
+
 
 def proppfrexx_play_now():
     if path_is_valid():
@@ -59,6 +65,9 @@ def proppfrexx_play_now():
 
         time.sleep(0.5)
         post("Load track", "PLS_CURRENT_PLAY_NEXT")
+
+        print(f"Playing {get_filepath()} now! (..with crossfade)")
+        read_meta()
 
 
 def browse_folder():
@@ -205,6 +214,8 @@ def write_meta():
         with taglib.File(filename, save_on_exit=True) as song:
             song.tags["ARTIST"] = [artist_field.get()]
             song.tags["TITLE"] = [title_field.get()]
+
+        print(f"Metadata set to file '{filename}':\nArtist: '{artist_field.get()}'\nTitle: '{title_field.get()}'")
 
 
 def auto_meta_from_filename():
