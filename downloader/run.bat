@@ -1,4 +1,9 @@
 @echo off
+chcp 65001 >nul
+set PYTHONUTF8=1
+set PYTHONIOENCODING=utf-8
+setlocal
+
 setlocal enabledelayedexpansion
 
 set PROJECT_NAME=SKC.fm Downloader
@@ -54,4 +59,3 @@ python -m %MAIN_SOURCE_FILE%
 
 echo.
 echo Laku noc.
-pause
