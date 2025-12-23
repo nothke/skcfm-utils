@@ -48,7 +48,7 @@ def proppfrexx_ping():
 
 def proppfrexx_queue_last():
     if path_is_valid():
-        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_file_id(get_filepath()))
+        post("Append file", f"PLS_CURRENT_APPEND_FILE {get_file_id(get_filepath())}")
         time.sleep(0.5)
 
 
@@ -59,7 +59,7 @@ def proppfrexx_set_next():
 
         print(f"Should be placed at {num}")
 
-        post("Append file", "PLS_CURRENT_APPEND_FILE " + get_file_id(get_filepath()))
+        post("Append file", f"PLS_CURRENT_APPEND_FILE {get_file_id(get_filepath())}")
         time.sleep(0.5)
         post("Select last", "PLS_CURRENT_SELECT_ENTRY LAST")
         time.sleep(0.5)
