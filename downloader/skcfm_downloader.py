@@ -22,7 +22,7 @@ def post(name, command):
 
     request = requests.post(cmd, auth=pw, headers=h, data=command)
 
-    print(f"{name} response: {request.text}")
+    print(f"{name}, command: '{command}', response: {request.text}")
 
     return request
 
