@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Editor/IDE files
+.vscode/
+.idea/
+.DS_Store # macOS system file
+
+# Environment variables
+.env
+pip-log.txt
+
+# Distribution / build files
+build/
+dist/
+
+# Downloaded audio files
+*.mp3
+*.webm
