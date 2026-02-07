@@ -20,9 +20,19 @@ print("Dobro veče")
 
 video_url = "https://www.youtube.com/watch?v=7N8IDv8viZk"  # Replace with your video URL
 
+pw = ("Sample", "sample")
+
+try:
+    with open("auth.txt", 'r') as file:
+        spl = file.read().split(":")
+        pw = (spl[0], spl[1])
+except FileNotFoundError:
+    print("Error: Auth file was not found.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
 def post(name, command):
     cmd = "http://localhost:8081/commands"
-    pw = ("Sample", "sample")
     h = {"Content-Type": "text/plain; charset=utf-8"}
 
     request = requests.post(cmd, auth=pw, headers=h, data=command)
