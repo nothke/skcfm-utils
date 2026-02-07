@@ -26,3 +26,5 @@ dist/
 # Downloaded audio files
 *.mp3
 *.webm
+
+auth.txt
