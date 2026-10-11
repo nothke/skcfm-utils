@@ -1,0 +1,8 @@
+# Arhivator dependencies
+# Requires Python 3.12+ -- stdlib "wave" only reads WAVE_FORMAT_EXTENSIBLE
+# from 3.12 onward, and many recorders emit it.
+
+PySide6>=6.6
+numpy>=1.24
+scipy>=1.10
+pyloudnorm>=0.2  # EBU R128 loudness for BEXT v2
