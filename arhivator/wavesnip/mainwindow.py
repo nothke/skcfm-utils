@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(region_group)  # Left column takes 1 part
         left_layout.addWidget(export_group)
 
-        layout.addLayout(left_layout)
+        layout.addLayout(left_layout, 1)
 
         # =================== RIGHT COLUMN: Block Editing ===================
         right_group = QGroupBox("Block Editing")
